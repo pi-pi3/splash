@@ -1,15 +1,14 @@
 
+local __name = ...
+
 local splash
-
-function init(name)
-    if name == 'main' then
-        splash = love
-    else
-        splash = {}
-    end
+if __name == 'main' then
+    splash = love
+    love.window.setMode(768, 512)
+    love.window.setTitle('splash')
+else
+    splash = {}
 end
-
-init(...)
 
 local floor
 local screen
@@ -118,7 +117,11 @@ function splash.update(dt)
     end
 
     if frame > #seq then
-        love.event.quit()
+        if __name == 'main' then
+            love.event.quit()
+        else
+            splash.done = true
+        end
     end
 
     if frame == 1 or frame == 2 then
