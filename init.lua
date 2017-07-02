@@ -57,7 +57,7 @@ function splash.load()
     rain.splash_time = 0.25
 
     for i = 1, rain.count do
-        drop = {}
+        local drop = {}
         drop.x = math.random(0, screen.width)
         drop.y = math.random(0, screen.height)
 
@@ -94,7 +94,7 @@ function splash.load()
             end
         end
 
-        star = {}
+        local star = {}
         star.x = x*w + math.random(0, w*0.7)
         star.y = y*h + math.random(0, h*0.7)
         star.t = 0
