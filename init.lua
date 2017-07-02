@@ -105,9 +105,9 @@ function splash.load()
 
     transition = {duration = 0.5, total = 0.5}
     rain.duration = 2.5
-    star.duration = 1.5
+    stars.duration = 1.5
 
-    seq = {star, transition, rain}
+    seq = {stars, transition, rain}
     frame = 1
 end
 
