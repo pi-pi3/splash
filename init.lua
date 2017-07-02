@@ -153,7 +153,7 @@ function splash.update(dt)
     end
 end
 
-function draw_rain()
+local draw_rain = function()
     love.graphics.setBlendMode('alpha')
     love.graphics.clear(rain.background)
 
@@ -198,7 +198,7 @@ function draw_rain()
     end
 end
 
-function draw_stars()
+local draw_stars = function()
     love.graphics.setBlendMode('alpha')
     love.graphics.clear(stars.background)
 
