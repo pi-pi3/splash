@@ -13,6 +13,7 @@ end
 local floor
 local screen
 local rain
+local stars
 local transition
 local seq
 local frame
