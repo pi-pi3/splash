@@ -1,7 +1,26 @@
 
-function love.load()
+local splash
+
+function init(name)
+    if name == 'main' then
+        splash = love
+    else
+        splash = {}
+    end
+end
+
+init(...)
+
+local floor
+local screen
+local rain
+local transition
+local seq
+local frame
+
+function splash.load()
     floor = {}
-    floor.color = {0x33, 0x04, 0x4b, 0xff}
+    floor.color = {0x92, 0x88, 0xb0, 0xff}
     floor.height = 32
 
     screen = {}
@@ -24,7 +43,7 @@ function love.load()
     end
 
     rain = {}
-    rain.background = {0xca, 0x7e, 0xbc, 0xff}
+    rain.background = {0xcd, 0x98, 0xb6, 0xff}
     rain.color = {0xee, 0xc3, 0x00, 0xff}
     rain.intensity = 0.1
     rain.length = 6
@@ -32,8 +51,8 @@ function love.load()
     rain.dx = -rain.length*math.sin(rain.angle)
     rain.dy = -rain.length*math.cos(rain.angle)
     rain.drops = {}
-    rain.count = rain.intensity*screen.width
-               * rain.intensity*screen.height/rain.length
+    rain.count = math.floor(rain.intensity*screen.width
+                            * rain.intensity*screen.height/rain.length + 0.5)
     rain.speed = 160
     rain.splash = {}
     rain.splash_time = 0.25
@@ -51,13 +70,13 @@ function love.load()
     stars.color = {0xee, 0xc3, 0x00, 0xff}
     stars.intensity = 0.05
     stars.stars = {}
-    stars.count = stars.intensity*screen.width * 
-                  stars.intensity*screen.height
+    stars.count = math.floor(stars.intensity*screen.width * 
+                             stars.intensity*screen.height+0.5)
     stars.flash_time = 0.35
 
-    local sectors = math.sqrt(stars.count)
+    local sectors = math.floor(math.sqrt(stars.count)+0.5)
     local w = screen.width/sectors
-    local h = screen.height/sectors
+    local h = (screen.height-floor.height)/sectors
     local s = {}
 
     for i = 1, stars.count do
@@ -84,14 +103,15 @@ function love.load()
         stars.stars[i] = star
     end
 
-    rain.duration = 1.5
+    transition = {duration = 0.5, total = 0.5}
+    rain.duration = 2.5
     star.duration = 1.5
 
-    seq = {star, rain}
+    seq = {star, transition, rain}
     frame = 1
 end
 
-function love.update(dt)
+function splash.update(dt)
     seq[frame].duration = seq[frame].duration - dt
     if seq[frame].duration <= 0 then
         frame = frame + 1
@@ -101,11 +121,13 @@ function love.update(dt)
         love.event.quit()
     end
 
-    if frame == 1 then
+    if frame == 1 or frame == 2 then
         for _, star in ipairs(stars.stars) do
             star.t = math.fmod(star.t + dt, stars.flash_time)
         end
-    elseif frame == 2 then
+    end
+
+    if frame == 2 or frame == 3 then
         for _, drop in ipairs(rain.drops) do
             local sp = 1/rain.length*rain.speed*dt
 
@@ -195,27 +217,44 @@ function draw_stars()
     end
 end
 
-function love.draw()
-    if frame == 1 then
+function splash.draw()
+    if frame == 1 or frame == 2 then
         love.graphics.setCanvas(screen.star_canvas)
-
         draw_stars()
-
         love.graphics.setCanvas()
+    end
 
+    if frame == 2 or frame == 3 then
+        love.graphics.setCanvas(screen.rain_canvas)
+        draw_rain()
+        love.graphics.setCanvas()
+    end
+
+    if frame == 1 then
         love.graphics.setBlendMode('alpha')
         love.graphics.clear(0, 0, 0, 255)
         love.graphics.setColor(255, 255, 255, 255)
 
         love.graphics.draw(screen.star_canvas, screen.x, screen.y,
                            0, screen.scale)
-    elseif frame == 2 then
-        love.graphics.setCanvas(screen.rain_canvas)
+    end
 
-        draw_rain()
+    if frame == 2 then
+        love.graphics.setBlendMode('alpha')
+        love.graphics.clear(0, 0, 0, 255)
 
-        love.graphics.setCanvas()
+        local w = transition.duration/transition.total
 
+        love.graphics.setColor(255, 255, 255, w*255)
+        love.graphics.draw(screen.star_canvas, screen.x, screen.y,
+                           0, screen.scale)
+
+        love.graphics.setColor(255, 255, 255, (1-w)*255)
+        love.graphics.draw(screen.rain_canvas, screen.x, screen.y,
+                           0, screen.scale)
+    end
+
+    if frame == 3 then
         love.graphics.setBlendMode('alpha')
         love.graphics.clear(0, 0, 0, 255)
         love.graphics.setColor(255, 255, 255, 255)
@@ -224,3 +263,5 @@ function love.draw()
                            0, screen.scale)
     end
 end
+
+return splash
