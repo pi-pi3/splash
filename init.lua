@@ -1,11 +1,11 @@
 
 function love.load()
     floor = {}
-    floor.color = {0x3d, 0x12, 0x55, 0xff}
+    floor.color = {0x33, 0x04, 0x4b, 0xff}
     floor.height = 32
 
     background = {}
-    background.color = {0x98, 0x4c, 0x8a, 0xff}
+    background.color = {0xca, 0x7e, 0xbc, 0xff}
 
     screen = {}
     screen.width = 128
@@ -26,8 +26,8 @@ function love.load()
 
     rain = {}
     rain.color = {0xee, 0xc3, 0x00, 0xff}
-    rain.intensity = 0.1
-    rain.length = 8
+    rain.intensity = 0.01
+    rain.length = 6
     rain.angle = math.rad(30) -- 0 is downwards
     rain.dx = -rain.length*math.sin(rain.angle)
     rain.dy = -rain.length*math.cos(rain.angle)
@@ -35,7 +35,7 @@ function love.load()
     rain.count = rain.intensity*screen.width * screen.height/rain.length
     rain.speed = 160
     rain.splash = {}
-    rain.splash_time = 0.5
+    rain.splash_time = 0.25
 
     for i = 1, rain.count do
         drop = {}
@@ -55,12 +55,16 @@ function love.update(dt)
 
         if drop.x < 0 then drop.x = drop.x + screen.width end
         if drop.x >= screen.width then drop.x = drop.x - screen.width end
-        if drop.y >= screen.height-floor.height then
-            table.insert(rain.splash, {x = drop.x + rain.dx,
-                                       y = drop.y - rain.dy,
+        if drop.y >= screen.height-floor.height*math.random()+rain.dy then
+            table.insert(rain.splash, {x = math.floor(drop.x + rain.dx),
+                                       y = math.floor(drop.y - rain.dy),
                                        t = rain.splash_time})
             drop.y = drop.y - screen.height + floor.height - rain.length
         end
+    end
+
+    for _, drop in ipairs(rain.splash) do
+        drop.t = drop.t - dt
     end
 end
 
@@ -81,7 +85,34 @@ function love.draw()
                                drop.x + rain.dx, drop.y - rain.dy)
         end
 
-        -- TODO: splashes
+        for i, drop in ipairs(rain.splash) do
+            local stage = math.ceil((rain.splash_time-drop.t)
+                                    * (3/rain.splash_time))
+
+            if stage == 1 then
+                love.graphics.points(drop.x,   drop.y-1,
+                                     drop.x+1, drop.y,
+                                     drop.x,   drop.y+1,
+                                     drop.x-1, drop.y)
+            elseif stage == 2 then
+                love.graphics.points(drop.x,   drop.y-2,
+                                     drop.x+2, drop.y,
+                                     drop.x,   drop.y+2,
+                                     drop.x-2, drop.y,
+                                     drop.x+1, drop.y+1,
+                                     drop.x-1, drop.y+1,
+                                     drop.x-1, drop.y-1,
+                                     drop.x+1, drop.y-1)
+
+            elseif stage == 3 then
+                love.graphics.points(drop.x,   drop.y-2,
+                                     drop.x+2, drop.y,
+                                     drop.x,   drop.y+2,
+                                     drop.x-2, drop.y)
+            else
+                table.remove(rain.splash, i)
+            end
+        end
     love.graphics.setCanvas()
 
     love.graphics.setBlendMode('alpha')
